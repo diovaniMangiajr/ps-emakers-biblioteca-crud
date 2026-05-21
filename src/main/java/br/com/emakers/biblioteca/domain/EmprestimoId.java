@@ -2,7 +2,6 @@ package br.com.emakers.biblioteca.domain;
 
 import java.io.Serializable;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -18,9 +17,6 @@ import lombok.Setter;
 @EqualsAndHashCode
 
 public class EmprestimoId implements Serializable{
-    @Column(name = "idLivro")
     private Integer idLivro;
-
-    @Column(name = "idPessoa")
     private Integer idPessoa;
 }

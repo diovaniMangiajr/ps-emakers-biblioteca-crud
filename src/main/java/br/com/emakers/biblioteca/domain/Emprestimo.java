@@ -5,30 +5,27 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
-import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "Emprestimo")
 @Getter
 @Setter
 @NoArgsConstructor
-
-public class Emprestimo{
+public class Emprestimo {
 
     @EmbeddedId
     private EmprestimoId id = new EmprestimoId();
 
     @ManyToOne
-    @MapsId("idLivro") // Diz ao JPA que esse relacionamento preenche o "idLivro" da chave composta
-    @JoinColumn(name = "idLivro")
+    @MapsId("idLivro") // Aponta para a variável no Java (EmprestimoId.java)
+    @JoinColumn(name = "id_livro") // Aponta para a coluna física no Postgres
     private Livro livro;
 
     @ManyToOne
-    @MapsId("idPessoa")
-    @JoinColumn(name = "idPessoa")
+    @MapsId("idPessoa") // Aponta para a variável no Java (EmprestimoId.java)
+    @JoinColumn(name = "id_pessoa") // Aponta para a coluna física no Postgres
     private Pessoa pessoa;
 
     public Emprestimo(Livro livro, Pessoa pessoa) {
