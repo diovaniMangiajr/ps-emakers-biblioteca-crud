@@ -30,4 +30,7 @@ public class Livro {
     private String autor;
 
     private LocalDate dataLancamento; // Mapeia nativamente para o tipo DATE do Postgres
+
+    @Column(nullable = false)
+    private Integer quantidade;
 }
