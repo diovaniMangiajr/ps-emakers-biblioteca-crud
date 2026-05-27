@@ -58,6 +58,11 @@ public class EmprestimoService {
         Emprestimo emprestimo = emprestimoRepository.findById(emprestimoId)
             .orElseThrow(() -> new RuntimeException("Empréstimo não encontrado para o Livro ID " + idLivro + " e Pessoa ID " + idPessoa));
 
+        // Recuperar o livro, incrementar o estoque e salvar!
+        Livro livro = emprestimo.getLivro();
+        livro.setQuantidade(livro.getQuantidade() + 1);
+        livroService.salvar(livro);
+
         // Deletar o registro (o que significa que o livro foi devolvido)
         emprestimoRepository.delete(emprestimo);
     }
