@@ -3,13 +3,19 @@ package br.com.emakers.biblioteca.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 import br.com.emakers.biblioteca.domain.Emprestimo;
+import br.com.emakers.biblioteca.dto.EmprestimoAtivoResponseDTO;
 import br.com.emakers.biblioteca.dto.EmprestimoRequestDTO;
+import br.com.emakers.biblioteca.dto.LivroResponseDTO;
 import br.com.emakers.biblioteca.service.EmprestimoService;
 import lombok.RequiredArgsConstructor;
 
@@ -36,5 +42,33 @@ public class EmprestimoController {
         
         // Retorna 204 No Content indicando que a devolução (deleção do registro) foi feita com sucesso
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Endpoint de Relatório Geral: Lista todos os empréstimos correntes no sistema.
+     * Mapeia os dados relacionais complexos para o formato plano do EmprestimoAtivoResponseDTO.
+     */
+    @GetMapping("/ativos")
+    public ResponseEntity<List<EmprestimoAtivoResponseDTO>> listarTodosAtivos() {
+        List<EmprestimoAtivoResponseDTO> ativos = emprestimoService.buscarTodosEmprestimosAtivos().stream()
+                .map(e -> new EmprestimoAtivoResponseDTO(
+                        e.getLivro().getIdLivro(),     // Extrai o ID do livro associado
+                        e.getLivro().getNome(),        // Extrai o Nome do livro associado
+                        e.getPessoa().getIdPessoa(),   // Extrai o ID da pessoa associada
+                        e.getPessoa().getNome()        // Extrai o Nome da pessoa associada
+                )).toList();
+        return ResponseEntity.ok(ativos);
+    }
+
+    /**
+     * Endpoint de Relatório Específico: Lista todos os livros que pertencem a uma pessoa.
+     * Recebe o ID dinamicamente pela URL através do @PathVariable.
+     */
+    @GetMapping("/pessoa/{idPessoa}")
+    public ResponseEntity<List<LivroResponseDTO>> listarPorPessoa(@PathVariable Integer idPessoa) {
+        List<LivroResponseDTO> livros = emprestimoService.buscarLivrosEmprestadosPorPessoa(idPessoa).stream()
+                .map(l -> new LivroResponseDTO(l.getIdLivro(), l.getNome(), l.getAutor(), l.getDataLancamento(), l.getQuantidade()))
+                .toList();
+        return ResponseEntity.ok(livros);
     }
 }

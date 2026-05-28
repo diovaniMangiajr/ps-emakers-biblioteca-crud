@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.emakers.biblioteca.domain.Livro;
 import br.com.emakers.biblioteca.dto.LivroRequestDTO;
+import br.com.emakers.biblioteca.dto.LivroResponseDTO;
 import br.com.emakers.biblioteca.service.LivroService;
 import lombok.RequiredArgsConstructor;
 
@@ -56,5 +57,28 @@ public class LivroController {
         livroService.deletar(id);
         // Retorna HTTP Status 204 (No Content), padrão de mercado para deleções bem-sucedidas
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Endpoint para busca avançada de livros por parte do nome.
+     * Usa Stream API para mapear de forma performática a Entidade para o ResponseDTO.
+     */
+    @GetMapping("/buscar-por-nome")
+    public ResponseEntity<List<LivroResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
+        List<LivroResponseDTO> livros = livroService.buscarPorNome(nome).stream()
+                .map(l -> new LivroResponseDTO(l.getIdLivro(), l.getNome(), l.getAutor(), l.getDataLancamento(), l.getQuantidade()))
+                .toList(); // Converte o fluxo da stream de volta para uma lista imutável
+        return ResponseEntity.ok(livros); // Retorna HTTP 200 OK com o payload convertido
+    }
+
+    /**
+     * Endpoint para busca avançada de livros filtrados pelo autor.
+     */
+    @GetMapping("/buscar-por-autor")
+    public ResponseEntity<List<LivroResponseDTO>> buscarPorAutor(@org.springframework.web.bind.annotation.RequestParam String autor) {
+        List<LivroResponseDTO> livros = livroService.buscarPorAutor(autor).stream()
+                .map(l -> new LivroResponseDTO(l.getIdLivro(), l.getNome(), l.getAutor(), l.getDataLancamento(), l.getQuantidade()))
+                .toList();
+        return ResponseEntity.ok(livros);
     }
 }
