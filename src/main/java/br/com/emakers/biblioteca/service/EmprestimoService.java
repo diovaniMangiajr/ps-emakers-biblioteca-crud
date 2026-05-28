@@ -2,7 +2,7 @@ package br.com.emakers.biblioteca.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.List;
 import br.com.emakers.biblioteca.domain.Emprestimo;
 import br.com.emakers.biblioteca.domain.EmprestimoId;
 import br.com.emakers.biblioteca.domain.Livro;
@@ -65,5 +65,24 @@ public class EmprestimoService {
 
         // Deletar o registro (o que significa que o livro foi devolvido)
         emprestimoRepository.delete(emprestimo);
+    }
+
+    /**
+     * Gera o relatório de livros atualmente sob posse de uma pessoa.
+     * Realiza uma busca defensiva prévia para garantir a existência da pessoa no banco.
+     */
+    public List<Livro> buscarLivrosEmprestadosPorPessoa(Integer idPessoa) {
+        // Validação galante: Se a pessoa não existir, dispara a RuntimeException (404 via ExceptionHandler)
+        pessoaService.buscarPorId(idPessoa); 
+        
+        // Retorna a lista de livros persistidos para aquela pessoa específica
+        return emprestimoRepository.findLivrosByPessoaId(idPessoa);
+    }
+
+    /**
+     * Retorna todos os registros de empréstimos contidos na tabela associativa.
+     */
+    public List<Emprestimo> buscarTodosEmprestimosAtivos() {
+        return emprestimoRepository.findAll();
     }
 }

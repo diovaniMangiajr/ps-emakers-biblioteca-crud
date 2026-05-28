@@ -42,4 +42,19 @@ public class LivroService {
 
         livroRepository.delete(livro);
     }
+    
+    /**
+     * Repassa a busca por nome para o repositório.
+     * Adiciona isolamento tático entre a Controller e a Persistência.
+     */
+    public List<Livro> buscarPorNome(String nome) {
+        return livroRepository.findByNomeContainingIgnoreCase(nome);
+    }
+
+    /**
+     * Repassa a busca por autor para o repositório.
+     */
+    public List<Livro> buscarPorAutor(String autor) {
+        return livroRepository.findByAutorContainingIgnoreCase(autor);
+    }
 }
