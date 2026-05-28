@@ -26,7 +26,7 @@ public class LivroController {
     private final LivroService livroService;
 
     @PostMapping
-    public ResponseEntity<Livro> cadastrarLivro(@RequestBody LivroRequestDTO dto) {
+    public ResponseEntity<Livro> cadastrarLivro(@jakarta.validation.Valid @RequestBody LivroRequestDTO dto) {
         // Convertemos o DTO recebido da web para a nossa Entidade JPA
         Livro novoLivro = new Livro();
         novoLivro.setNome(dto.nome());

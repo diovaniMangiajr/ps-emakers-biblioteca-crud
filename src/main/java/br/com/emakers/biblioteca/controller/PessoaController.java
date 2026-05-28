@@ -25,7 +25,7 @@ public class PessoaController {
     private final PessoaService pessoaService;
 
     @PostMapping
-    public ResponseEntity<Pessoa> cadastrarPessoa(@RequestBody PessoaRequestDTO dto) {
+    public ResponseEntity<Pessoa> cadastrarPessoa(@jakarta.validation.Valid @RequestBody PessoaRequestDTO dto) {
         // Convertemos o Record DTO recebido da Web para a Entidade JPA Pessoa
         Pessoa novaPessoa = new Pessoa();
         novaPessoa.setNome(dto.nome());
