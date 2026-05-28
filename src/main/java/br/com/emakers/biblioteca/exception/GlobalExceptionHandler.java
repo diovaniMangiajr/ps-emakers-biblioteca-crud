@@ -56,4 +56,28 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(status).body(erroResponse);
     }
+
+    /**
+     * Captura erros de validação (@Valid) nos payloads de entrada da API.
+     * Transforma um erro complexo de framework em um JSON limpo e legível (HTTP 400)[cite: 29, 34].
+     */
+    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+    public ResponseEntity<ErroResponseDTO> handleValidationException(org.springframework.web.bind.MethodArgumentNotValidException ex) {
+        // Instancia um StringBuilder para agrupar todas as mensagens de erro caso o JSON venha com múltiplos campos inválidos
+        StringBuilder sb = new StringBuilder();
+        
+        // Percorre a lista de erros de campo gerados pelo Spring Validator
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            sb.append(error.getField()).append(": ").append(error.getDefaultMessage()).append(" | ");
+        });
+        
+        String mensagemFormatada = sb.toString();
+        // Remove os caracteres residuais " | " do final da string para estética do payload
+        if (mensagemFormatada.endsWith(" | ")) {
+            mensagemFormatada = mensagemFormatada.substring(0, mensagemFormatada.length() - 3);
+        }
+
+        // Retorna HTTP Status 400 (Bad Request) encapsulado no ErroResponseDTO padrão do projeto [cite: 30, 34]
+        return criarErroResponse(HttpStatus.BAD_REQUEST, mensagemFormatada);
+    }
 }
