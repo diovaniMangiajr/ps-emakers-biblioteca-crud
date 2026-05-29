@@ -15,17 +15,7 @@ import br.com.emakers.biblioteca.dto.ErroResponseDTO;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Captura erros lógicos que criados no Service
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErroResponseDTO> handleRuntimeException(RuntimeException ex) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
 
-        if (ex.getMessage().toLowerCase().contains("não encontrado") || ex.getMessage().toLowerCase().contains("não encontrada")) {
-            status = HttpStatus.NOT_FOUND;
-        }
-
-        return criarErroResponse(status, ex.getMessage());
-    }
 
     // Captura erros de JSON malformado ou tipos de dados errados no corpo da requisição
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -79,5 +69,24 @@ public class GlobalExceptionHandler {
 
         // Retorna HTTP Status 400 (Bad Request) encapsulado no ErroResponseDTO padrão do projeto [cite: 30, 34]
         return criarErroResponse(HttpStatus.BAD_REQUEST, mensagemFormatada);
+    }
+
+    // Captura erros lógicos criados no Service
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErroResponseDTO> handleRuntimeException(RuntimeException ex) {
+        
+        // CORREÇÃO CRÍTICA DO SWAGGER: Se o erro vier do mapeamento interno do OpenAPI/Swagger, relança a exceção
+        // para que a própria biblioteca do Springdoc trate e monte o JSON de documentação corretamente.
+        if (ex.getClass().getName().contains("springdoc") || ex.getMessage().contains("OpenAPI")) {
+            throw ex;
+        }
+
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+
+        if (ex.getMessage().toLowerCase().contains("não encontrado") || ex.getMessage().toLowerCase().contains("não encontrada")) {
+            status = HttpStatus.NOT_FOUND;
+        }
+
+        return criarErroResponse(status, ex.getMessage());
     }
 }

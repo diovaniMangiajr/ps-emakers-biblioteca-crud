@@ -3,7 +3,7 @@ package br.com.emakers.biblioteca.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.br.CPF;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * Record DTO para requisição de cadastro de Pessoas, blindado com validações do Jakarta Validation.
@@ -14,7 +14,7 @@ public record PessoaRequestDTO(
     String nome,
 
     @NotBlank(message = "O CPF é obrigatório.")
-    @CPF(message = "O CPF informado é inválido.") // Valida o algoritmo de dígitos verificadores do CPF
+    @Pattern(regexp = "\\d{11}", message = "O CPF deve conter exatamente 11 dígitos numéricos.")
     String cpf,
 
     @NotBlank(message = "O CEP é obrigatório.")
