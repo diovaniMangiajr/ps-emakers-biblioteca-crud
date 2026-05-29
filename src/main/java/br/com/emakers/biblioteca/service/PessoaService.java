@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import br.com.emakers.biblioteca.domain.Pessoa;
+import br.com.emakers.biblioteca.dto.ViaCepResponseDTO;
 import br.com.emakers.biblioteca.repository.PessoaRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -13,10 +14,22 @@ import lombok.RequiredArgsConstructor;
 public class PessoaService {
 
     private final PessoaRepository pessoaRepository;
+    private final ViaCepService viaCepService;
 
-    public Pessoa salvar(Pessoa pessoa) {
-        // Futuramente podemos adicionar criptografia de senha ou validação de CPF aqui
-        return pessoaRepository.save(pessoa);
+    public Pessoa salvar(Pessoa novaPessoa) {
+        // 1. Consome a API externa para validar se o CEP realmente existe e é ativo
+    ViaCepResponseDTO dadosEndereco = viaCepService.consultarCep(novaPessoa.getCep());
+    
+    // Validação de segurança: O ViaCep retorna um campo "erro" caso o CEP tenha 8 dígitos mas não exista
+    if (dadosEndereco == null || dadosEndereco.cep() == null) {
+        throw new RuntimeException("O CEP informado não foi encontrado na base de dados do ViaCep.");
+    }
+    
+    // Opcional/Destaque: Ajusta o CEP da entidade para o formato padrão devolvido pela API oficial
+    novaPessoa.setCep(dadosEndereco.cep());
+
+    // 2. Persiste a pessoa no banco de dados local com o CEP devidamente validado e higienizado
+    return pessoaRepository.save(novaPessoa);
     }
 
     public List<Pessoa> buscarTodas() {
