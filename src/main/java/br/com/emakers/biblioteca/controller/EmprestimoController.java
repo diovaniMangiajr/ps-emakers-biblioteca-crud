@@ -19,6 +19,7 @@ import br.com.emakers.biblioteca.dto.LivroResponseDTO;
 import br.com.emakers.biblioteca.service.EmprestimoService;
 import lombok.RequiredArgsConstructor;
 
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Empréstimos", description = "Endpoints para gerenciamento e relatórios de empréstimos e devoluções")
 @RestController
 @RequestMapping("/emprestimos")
 @RequiredArgsConstructor
@@ -26,6 +27,7 @@ public class EmprestimoController {
 
     private final EmprestimoService emprestimoService;
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Realiza o empréstimo de um livro", description = "Bloqueia a operação caso reste apenas 1 exemplar no acervo para leitura local.")
     @PostMapping("/pegar")
     public ResponseEntity<Emprestimo> pegarEmprestado(@RequestBody EmprestimoRequestDTO dto) {
         // Chame a lógica de negócio do Service passando os IDs do DTO
@@ -35,6 +37,7 @@ public class EmprestimoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(emprestimoSalvo);
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Registra a devolução de um livro", description = "Incrementa o estoque do livro e remove o vínculo físico do empréstimo de forma atômica.")
     @DeleteMapping("/devolver")
     public ResponseEntity<Void> devolverLivro(@RequestBody EmprestimoRequestDTO dto) {
         // Executa a lógica de devolução e atualização de estoque no Service
