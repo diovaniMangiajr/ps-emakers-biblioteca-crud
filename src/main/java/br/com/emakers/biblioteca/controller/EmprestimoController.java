@@ -17,18 +17,20 @@ import br.com.emakers.biblioteca.dto.EmprestimoAtivoResponseDTO;
 import br.com.emakers.biblioteca.dto.EmprestimoRequestDTO;
 import br.com.emakers.biblioteca.dto.LivroResponseDTO;
 import br.com.emakers.biblioteca.service.EmprestimoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
-@io.swagger.v3.oas.annotations.tags.Tag(name = "Empréstimos", description = "Endpoints para gerenciamento e relatórios de empréstimos e devoluções")
+
 @RestController
 @RequestMapping("/emprestimos")
 @RequiredArgsConstructor
+@Tag(name = "Empréstimos", description = "Endpoints para gerenciamento de fluxos de locação e relatórios")
 public class EmprestimoController {
 
     private final EmprestimoService emprestimoService;
 
-    @io.swagger.v3.oas.annotations.Operation(summary = "Realiza o empréstimo de um livro", description = "Bloqueia a operação caso reste apenas 1 exemplar no acervo para leitura local.")
-    @PostMapping("/pegar")
+    @Operation(summary = "Realizar empréstimo", description = "Registra um novo empréstimo de livro no sistema, validando se há estoque disponível para leitura local.")
     public ResponseEntity<Emprestimo> pegarEmprestado(@RequestBody EmprestimoRequestDTO dto) {
         // Chame a lógica de negócio do Service passando os IDs do DTO
         Emprestimo emprestimoSalvo = emprestimoService.realizarEmprestimo(dto.idLivro(), dto.idPessoa());
@@ -37,8 +39,8 @@ public class EmprestimoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(emprestimoSalvo);
     }
 
-    @io.swagger.v3.oas.annotations.Operation(summary = "Registra a devolução de um livro", description = "Incrementa o estoque do livro e remove o vínculo físico do empréstimo de forma atômica.")
     @DeleteMapping("/devolver")
+    @Operation(summary = "Realizar devolução", description = "Remove o registro de empréstimo e incrementa o estoque do livro de forma atômica no banco de dados.")
     public ResponseEntity<Void> devolverLivro(@RequestBody EmprestimoRequestDTO dto) {
         // Executa a lógica de devolução e atualização de estoque no Service
         emprestimoService.realizarDevolucao(dto.idLivro(), dto.idPessoa());
@@ -52,6 +54,7 @@ public class EmprestimoController {
      * Mapeia os dados relacionais complexos para o formato plano do EmprestimoAtivoResponseDTO.
      */
     @GetMapping("/ativos")
+    @Operation(summary = "Relatório de empréstimos ativos", description = "Retorna uma listagem achatada e limpa de todos os empréstimos correntes no sistema.")
     public ResponseEntity<List<EmprestimoAtivoResponseDTO>> listarTodosAtivos() {
         List<EmprestimoAtivoResponseDTO> ativos = emprestimoService.buscarTodosEmprestimosAtivos().stream()
                 .map(e -> new EmprestimoAtivoResponseDTO(
@@ -68,6 +71,7 @@ public class EmprestimoController {
      * Recebe o ID dinamicamente pela URL através do @PathVariable.
      */
     @GetMapping("/pessoa/{idPessoa}")
+    @Operation(summary = "Listar livros por pessoa", description = "Retorna todos os livros que estão atualmente sob a posse de uma pessoa específica.")
     public ResponseEntity<List<LivroResponseDTO>> listarPorPessoa(@PathVariable Integer idPessoa) {
         List<LivroResponseDTO> livros = emprestimoService.buscarLivrosEmprestadosPorPessoa(idPessoa).stream()
                 .map(l -> new LivroResponseDTO(l.getIdLivro(), l.getNome(), l.getAutor(), l.getDataLancamento(), l.getQuantidade()))

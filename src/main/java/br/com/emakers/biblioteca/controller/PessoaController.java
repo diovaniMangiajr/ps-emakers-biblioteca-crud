@@ -15,16 +15,20 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.emakers.biblioteca.domain.Pessoa;
 import br.com.emakers.biblioteca.dto.PessoaRequestDTO;
 import br.com.emakers.biblioteca.service.PessoaService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/pessoas")
 @RequiredArgsConstructor
+@Tag(name = "Pessoas", description = "Endpoints para gerenciamento de dados de usuários e integração de CEP")
 public class PessoaController {
 
     private final PessoaService pessoaService;
 
     @PostMapping
+    @Operation(summary = "Cadastrar uma pessoa", description = "Cadastra um usuário validando a estrutura de e-mail, algoritmo de CPF e consulta síncrona do CEP via ViaCep.")
     public ResponseEntity<Pessoa> cadastrarPessoa(@jakarta.validation.Valid @RequestBody PessoaRequestDTO dto) {
         // Convertemos o Record DTO recebido da Web para a Entidade JPA Pessoa
         Pessoa novaPessoa = new Pessoa();
@@ -41,18 +45,21 @@ public class PessoaController {
     }
 
     @GetMapping
+    @Operation(summary = "Listar todas as pessoas", description = "Retorna a lista completa de usuários cadastrados no sistema.")
     public ResponseEntity<List<Pessoa>> listarTodas() {
         List<Pessoa> pessoas = pessoaService.buscarTodas();
         return ResponseEntity.ok(pessoas);
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar pessoa por ID", description = "Retorna os dados cadastrais de um usuário específico filtrado pelo ID.")
     public ResponseEntity<Pessoa> buscarPorId(@PathVariable Integer id) {
         Pessoa pessoa = pessoaService.buscarPorId(id);
         return ResponseEntity.ok(pessoa);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Deletar uma pessoa", description = "Remove o registro do usuário se ele não possuir livros pendentes de devolução.")
     public ResponseEntity<Void> deletarPessoa(@PathVariable Integer id) {
         pessoaService.deletar(id);
         // Retorna o HTTP Status 204 (No Content) indicando sucesso na deleção
