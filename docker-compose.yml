@@ -1,0 +1,43 @@
+
+
+services:
+  # Serviço 1: Nosso Banco de Dados Relacional
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: biblioteca-postgres-container
+    environment:
+      POSTGRES_DB: biblioteca_db
+      POSTGRES_USER: emakers
+      POSTGRES_PASSWORD: emakers_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - biblioteca-network
+
+  # Serviço 2: A API Spring Boot
+  api-service:
+    build: .
+    container_name: biblioteca-api-container
+    ports:
+      - "8080:8080"
+    environment:
+      # Injeta as variáveis dinamicamente para o Spring Boot conectar no container do banco
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/biblioteca_db
+      SPRING_DATASOURCE_USERNAME: emakers
+      SPRING_DATASOURCE_PASSWORD: emakers_password
+      SPRING_FLYWAY_URL: jdbc:postgresql://postgres-db:5432/biblioteca_db
+      SPRING_FLYWAY_USER: emakers
+      SPRING_FLYWAY_PASSWORD: emakers_password
+    depends_on:
+      - postgres-db # Garante que a API só inicialize após o banco estar pronto
+    networks:
+      - biblioteca-network
+
+volumes:
+  postgres_data: # Mantém os dados salvos no banco mesmo se os containers forem desligados
+
+networks:
+  biblioteca-network:
+    driver: bridge
