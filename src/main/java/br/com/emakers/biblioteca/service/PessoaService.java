@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null") // Suprime os avisos de Null Type Safety gerados pela interoperabilidade com as interfaces do Spring Data
 public class PessoaService {
 
     private final PessoaRepository pessoaRepository;
@@ -18,7 +19,7 @@ public class PessoaService {
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     public Pessoa salvar(Pessoa novaPessoa) {
-        // 1. Consome a API externa para validar se o CEP realmente existe e é ativo
+        // Consome a API externa para validar se o CEP realmente existe e é ativo
     ViaCepResponseDTO dadosEndereco = viaCepService.consultarCep(novaPessoa.getCep());
     
     // Validação de segurança: O ViaCep retorna um campo "erro" caso o CEP tenha 8 dígitos mas não exista
@@ -32,7 +33,7 @@ public class PessoaService {
     String senhaCriptografada = passwordEncoder.encode(novaPessoa.getSenha());
     novaPessoa.setSenha(senhaCriptografada);
 
-    // 2. Persiste a pessoa no banco de dados local com o CEP devidamente validado e higienizado
+    // Persiste a pessoa no banco de dados local com o CEP devidamente validado e higienizado
     return pessoaRepository.save(novaPessoa);
     }
 

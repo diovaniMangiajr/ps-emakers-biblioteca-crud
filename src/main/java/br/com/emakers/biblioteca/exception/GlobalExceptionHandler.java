@@ -15,8 +15,6 @@ import br.com.emakers.biblioteca.dto.ErroResponseDTO;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-
-
     // Captura erros de JSON malformado ou tipos de dados errados no corpo da requisição
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErroResponseDTO> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
@@ -26,7 +24,11 @@ public class GlobalExceptionHandler {
     // Captura erros de digitação na URL (ex: passar texto onde se espera o ID numérico)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErroResponseDTO> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        String mensagem = String.format("O parâmetro '%s' preenchido na URL deve ser do tipo %s.", ex.getName(), ex.getRequiredType().getSimpleName());
+        // Isola o retorno em uma variável local para zerar os warnings de fluxo do compilador
+        Class<?> tipoRequerido = ex.getRequiredType();
+        String tipoEsperado = (tipoRequerido != null) ? tipoRequerido.getSimpleName() : "especificado";
+        
+        String mensagem = String.format("O parâmetro '%s' preenchido na URL deve ser do tipo %s.", ex.getName(), tipoEsperado);
         return criarErroResponse(HttpStatus.BAD_REQUEST, mensagem);
     }
 
@@ -49,44 +51,41 @@ public class GlobalExceptionHandler {
 
     /**
      * Captura erros de validação (@Valid) nos payloads de entrada da API.
-     * Transforma um erro complexo de framework em um JSON limpo e legível (HTTP 400)[cite: 29, 34].
+     * Transforma um erro complexo de framework em um JSON limpo e legível (HTTP 400).
      */
     @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
     public ResponseEntity<ErroResponseDTO> handleValidationException(org.springframework.web.bind.MethodArgumentNotValidException ex) {
-        // Instancia um StringBuilder para agrupar todas as mensagens de erro caso o JSON venha com múltiplos campos inválidos
         StringBuilder sb = new StringBuilder();
         
-        // Percorre a lista de erros de campo gerados pelo Spring Validator
         ex.getBindingResult().getFieldErrors().forEach(error -> {
-            sb.append(error.getField()).append(": ").append(error.getDefaultMessage()).append(" | ");
+            String mensagemErro = (error.getDefaultMessage() != null) ? error.getDefaultMessage() : "Valor inválido";
+            sb.append(error.getField()).append(": ").append(mensagemErro).append(" | ");
         });
         
         String mensagemFormatada = sb.toString();
-        // Remove os caracteres residuais " | " do final da string para estética do payload
         if (mensagemFormatada.endsWith(" | ")) {
             mensagemFormatada = mensagemFormatada.substring(0, mensagemFormatada.length() - 3);
         }
 
-        // Retorna HTTP Status 400 (Bad Request) encapsulado no ErroResponseDTO padrão do projeto [cite: 30, 34]
         return criarErroResponse(HttpStatus.BAD_REQUEST, mensagemFormatada);
     }
 
     // Captura erros lógicos criados no Service
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErroResponseDTO> handleRuntimeException(RuntimeException ex) {
+        String msg = ex.getMessage() != null ? ex.getMessage() : "Erro inesperado no servidor.";
         
-        // CORREÇÃO CRÍTICA DO SWAGGER: Se o erro vier do mapeamento interno do OpenAPI/Swagger, relança a exceção
-        // para que a própria biblioteca do Springdoc trate e monte o JSON de documentação corretamente.
-        if (ex.getClass().getName().contains("springdoc") || ex.getMessage().contains("OpenAPI")) {
+        // Evita NullPointerException e ignora erros internos de mapeamento do OpenAPI
+        if (ex.getClass().getName().contains("springdoc") || msg.contains("OpenAPI")) {
             throw ex;
         }
 
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
-        if (ex.getMessage().toLowerCase().contains("não encontrado") || ex.getMessage().toLowerCase().contains("não encontrada")) {
+        if (msg.toLowerCase().contains("não encontrado") || msg.toLowerCase().contains("não encontrada")) {
             status = HttpStatus.NOT_FOUND;
         }
 
-        return criarErroResponse(status, ex.getMessage());
+        return criarErroResponse(status, msg);
     }
 }

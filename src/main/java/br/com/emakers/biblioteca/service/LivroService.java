@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null") // Suprime os avisos de Null Type Safety gerados pela interoperabilidade com as interfaces do Spring Data
 public class LivroService {
 
     private final LivroRepository livroRepository;
@@ -32,7 +33,7 @@ public class LivroService {
     public void deletar(Integer id) {
         Livro livro = buscarPorId(id);
 
-        // REGRA DE SEGURANÇA: Verificar se existe qualquer registro pendente na tabela de empréstimos para este livro
+        // Verificar se existe qualquer registro pendente na tabela de empréstimos para este livro
         boolean temEmprestimoAtivo = emprestimoRepository.findAll().stream()
             .anyMatch(emprestimo -> emprestimo.getId().getIdLivro().equals(id));
 
