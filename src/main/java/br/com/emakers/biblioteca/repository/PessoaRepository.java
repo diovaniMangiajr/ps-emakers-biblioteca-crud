@@ -8,4 +8,5 @@ import br.com.emakers.biblioteca.domain.Pessoa;
 @Repository
 public interface PessoaRepository extends JpaRepository<Pessoa, Integer> {
     // O JpaRepository exige a Entidade (Pessoa) e o tipo da Chave Primária (Integer)
+    java.util.Optional<Pessoa> findByEmail(String email);
 }

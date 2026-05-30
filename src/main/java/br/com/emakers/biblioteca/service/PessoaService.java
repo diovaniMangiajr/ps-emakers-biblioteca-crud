@@ -15,6 +15,7 @@ public class PessoaService {
 
     private final PessoaRepository pessoaRepository;
     private final ViaCepService viaCepService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     public Pessoa salvar(Pessoa novaPessoa) {
         // 1. Consome a API externa para validar se o CEP realmente existe e é ativo
@@ -27,6 +28,9 @@ public class PessoaService {
     
     // Opcional/Destaque: Ajusta o CEP da entidade para o formato padrão devolvido pela API oficial
     novaPessoa.setCep(dadosEndereco.cep());
+
+    String senhaCriptografada = passwordEncoder.encode(novaPessoa.getSenha());
+    novaPessoa.setSenha(senhaCriptografada);
 
     // 2. Persiste a pessoa no banco de dados local com o CEP devidamente validado e higienizado
     return pessoaRepository.save(novaPessoa);
