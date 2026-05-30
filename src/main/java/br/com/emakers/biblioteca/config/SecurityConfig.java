@@ -12,26 +12,28 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+    private final SecurityFilter securityFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .csrf(csrf -> csrf.disable()) // Desabilita o CSRF porque APIs RESTful usam Tokens (Stateless)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Sem estado (Session) no servidor
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                // Liberar rotas públicas de cadastro e login
                 .requestMatchers(HttpMethod.POST, "/pessoas").permitAll()
+                .requestMatchers(HttpMethod.GET, "/pessoas").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                
-                // Liberar rotas de documentação do Swagger UI
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                
-                // Qualquer outra requisição (ex: Livros, Empréstimos) exige autenticação imediata
                 .anyRequest().authenticated()
             )
+            // Adicionamos o nosso leitor de JWT antes do filtro padrão do Spring
+            .addFilterBefore(securityFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
             .build();
     }
 

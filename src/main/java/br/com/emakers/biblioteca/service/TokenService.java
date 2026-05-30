@@ -1,5 +1,5 @@
 package br.com.emakers.biblioteca.service;
-
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -40,5 +40,21 @@ public class TokenService {
      */
     private Instant gerarDataExpiracao() {
         return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+    }
+
+    /**
+     * Valida o token e extrai o e-mail (Subject) de dentro dele.
+     */
+    public String validarToken(String token) {
+        try {
+            Algorithm algoritmo = Algorithm.HMAC256(secret);
+            return JWT.require(algoritmo)
+                    .withIssuer("biblioteca-api")
+                    .build()
+                    .verify(token)
+                    .getSubject();
+        } catch (JWTVerificationException exception) {
+            return ""; // Se o token for inválido, expirado ou adulterado, retorna vazio
+        }
     }
 }

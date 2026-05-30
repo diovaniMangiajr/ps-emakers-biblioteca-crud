@@ -31,7 +31,7 @@ public class Pessoa {
     private String cpf;
     
     @JdbcTypeCode(Types.CHAR)
-    @Column(columnDefinition = "char(9)")
+    @Column(columnDefinition = "char(9)", nullable = false)
     private String cep;
     
     @Column(nullable = false, unique = true, length = 100)
